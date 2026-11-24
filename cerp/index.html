@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CERP 測試</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#30a0d7">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CERP 測試">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f4f6f9;
+       font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;color:#1c2533;padding:24px}
+  .card{background:#fff;border-radius:20px;box-shadow:0 8px 30px rgba(31,95,168,.12);padding:32px 28px;max-width:420px;width:100%;text-align:center}
+  .card img{width:120px;height:120px;border-radius:24px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+  h1{font-size:22px;margin:18px 0 6px}
+  p{color:#5b6676;font-size:14px;line-height:1.6;margin:6px 0}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:16px;font-weight:600;cursor:pointer;margin-top:12px;text-decoration:none}
+  .primary{background:#30a0d7;color:#fff}
+  .primary:hover{background:#2589bb}
+  .ghost{background:#eef4fa;color:#1f5fa8}
+  .tip{display:none;text-align:left;background:#f8f9fb;border-radius:12px;padding:12px 14px;margin-top:14px;font-size:13px;color:#5b6676;line-height:1.7}
+  .tip b{color:#1c2533}
+  .launching .actions,.launching .tip{display:none!important}
+  .spin{display:none;margin:16px auto 0;width:28px;height:28px;border:3px solid #d6e7f3;border-top-color:#30a0d7;border-radius:50%;animation:s 1s linear infinite}
+  .launching .spin{display:block}
+  @keyframes s{to{transform:rotate(360deg)}}
+  small{display:block;margin-top:18px;color:#9aa3af;font-size:12px}
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <img src="icon-192.png" alt="賀眾牌 CERP 測試">
+  <h1>CERP 新系統測試入口</h1>
+  <p id="desc">測試紀錄、需求記錄、Bug 提報<br>請使用公司 Google 帳號登入</p>
+  <div class="spin"></div>
+  <div class="actions">
+    <button class="btn primary" id="install" style="display:none">安裝成應用程式</button>
+    <a class="btn ghost" id="open" href="#">直接開啟</a>
+  </div>
+  <div class="tip" id="tipIos"><b>iPhone / iPad 安裝方式</b><br>1. 用 Safari 開啟本頁<br>2. 點下方「分享」按鈕 <span style="font-size:15px">⬆︎</span><br>3. 選「加入主畫面」→「新增」</div>
+  <div class="tip" id="tipOther"><b>安裝方式</b><br>電腦 Chrome／Edge：網址列右側的「安裝」圖示 ⊕，或右上角選單 →「安裝 CERP 測試」。<br>Android Chrome：右上角選單 ⋮ →「安裝應用程式」或「加到主畫面」。</div>
+  <div class="tip" id="tipDone"><b>已安裝</b><br>之後從桌面或主畫面的「CERP 測試」圖示開啟即可。</div>
+  <small>賀眾牌 ACUO</small>
+</div>
+<script>
+const APP_URL = "https://script.google.com/macros/s/AKfycbwtKid73ZQqNU6xiTMumaTAihjLi6ZJb6eCQ5U8eWYfU43XiaGBRg6oCPbhb4L8k2TH/exec";
+document.getElementById("open").href = APP_URL;
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+const standalone = matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: minimal-ui)").matches || navigator.standalone === true;
+const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const show = id => document.getElementById(id).style.display = "block";
+
+if (standalone) {
+  // 從桌面圖示開啟：直接進入測試入口
+  document.getElementById("card").classList.add("launching");
+  document.getElementById("desc").textContent = "開啟中…";
+  setTimeout(() => location.replace(APP_URL), 300);
+} else {
+  let deferred = null;
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault(); deferred = e;
+    document.getElementById("install").style.display = "block";
+    document.getElementById("tipOther").style.display = "none";
+  });
+  window.addEventListener("appinstalled", () => {
+    document.getElementById("install").style.display = "none";
+    document.getElementById("tipOther").style.display = "none";
+    show("tipDone");
+  });
+  document.getElementById("install").onclick = async () => {
+    if (!deferred) return;
+    deferred.prompt();
+    await deferred.userChoice.catch(()=>{});
+    deferred = null;
+  };
+  if (isIos) show("tipIos");
+  else setTimeout(() => { if (!deferred) show("tipOther"); }, 1500);
+}
+</script>
+</body>
+</html>
