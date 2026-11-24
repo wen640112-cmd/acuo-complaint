@@ -1,5 +1,5 @@
 // 外殼頁的離線快取（只快取本站檔案；測試入口本身在 Google 上，不快取）
-const CACHE = 'cerp-shell-v1';
+const CACHE = 'cerp-shell-v2';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-180.png'];
 
 self.addEventListener('install', e => {
